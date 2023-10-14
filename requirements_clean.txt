@@ -1,0 +1,4 @@
+numpy @ file:///D:/bld/numpy_1695291098581/work/dist/numpy-1.26.0-cp312-cp312-win_amd64.whl#sha256=fccd6a2dbc6f610b16ca87fd9a2092bb1a29083ce039c65bb69aa98f8a45b096
+pygame @ file:///D:/bld/pygame_1696017440198/work
+setuptools==68.2.2
+wheel==0.41.2
