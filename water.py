@@ -1,14 +1,16 @@
 import pygame
 import random
+import math
 
 # Constants
 WIDTH, HEIGHT = 800, 600
 PARTICLE_RADIUS = 5
 BG_COLOR = (0, 0, 0)
 PARTICLE_COLOR = (0, 0, 255)
-TANK_COLOR = (128, 128, 128)
 GRAVITY = 0.1
-NUM_PARTICLES = 5
+NUM_PARTICLES = 100
+DAMPING = 0.8  # Damping factor to reduce bouncing
+PARTICLE_INTERACTION_RADIUS = 20  # Interaction radius for particles
 
 # Particle class
 class Particle:
@@ -23,14 +25,24 @@ class Particle:
         self.x += self.vx
         self.y += self.vy
 
-        # Interaction with edges - Bounce off the edges
-        if self.x < tank.left or self.x > tank.right:
-            self.vx *= -1
-        if self.y < tank.top or self.y > tank.bottom:
-            self.vy *= -1
+        # Interaction with screen boundaries - Apply damping to reduce bouncing
+        if self.x < 0 or self.x > WIDTH:
+            self.vx *= -DAMPING
+        if self.y < 0 or self.y > HEIGHT:
+            self.vy *= -DAMPING
 
     def draw(self, screen):
         pygame.draw.circle(screen, PARTICLE_COLOR, (int(self.x), int(self.y)), PARTICLE_RADIUS)
+
+    def distance(self, other_particle):
+        # Calculate the distance between two particles
+        return math.sqrt((self.x - other_particle.x) ** 2 + (self.y - other_particle.y) ** 2)
+
+    def interact_with(self, other_particle):
+        # Apply interaction between two particles
+        if self.distance(other_particle) < PARTICLE_INTERACTION_RADIUS:
+            self.vx *= DAMPING
+            self.vy *= DAMPING
 
 # Initialize Pygame
 pygame.init()
@@ -40,13 +52,10 @@ clock = pygame.time.Clock()
 # List to store particles
 particles = []
 
-# Create the tank as a simple rectangle
-tank = pygame.Rect(100, 100, 600, 400)
-
-# Create a few particles within the tank
+# Create a few particles within the screen boundaries
 for _ in range(NUM_PARTICLES):
-    x_position = random.randint(tank.left, tank.right)
-    y_position = random.randint(tank.top, tank.bottom)
+    x_position = random.randint(0, WIDTH)
+    y_position = random.randint(0, HEIGHT)
     particle = Particle(x_position, y_position)
     particle.vx = random.uniform(-1, 1)
     particle.vy = random.uniform(-1, 1)
@@ -61,13 +70,15 @@ while running:
 
     screen.fill(BG_COLOR)
 
-    # Draw the tank
-    pygame.draw.rect(screen, TANK_COLOR, tank)
-
     # Move and draw particles
     for particle in particles:
         particle.move()
         particle.draw(screen)
+
+        # Check for particle-particle interactions
+        for other_particle in particles:
+            if particle != other_particle:
+                particle.interact_with(other_particle)
 
     pygame.display.flip()
     clock.tick(60)
