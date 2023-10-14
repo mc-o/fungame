@@ -6,33 +6,27 @@ WIDTH, HEIGHT = 800, 600
 PARTICLE_RADIUS = 5
 BG_COLOR = (0, 0, 0)
 PARTICLE_COLOR = (0, 0, 255)
-FLOW_RATE = 5  # Adjust the flow rate to control the number of particles added per frame
-FPS = 60
+TANK_COLOR = (128, 128, 128)
+GRAVITY = 0.1
+NUM_PARTICLES = 5
 
 # Particle class
 class Particle:
-    def __init__(self, x, y, vx, vy):
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.vx = vx
-        self.vy = vy
+        self.vx = 0
+        self.vy = 0
 
     def move(self):
+        self.vy += GRAVITY  # Simulate gravity
         self.x += self.vx
         self.y += self.vy
 
-        # Bounce off the screen boundaries
-        if self.x < 0:
-            self.x = 0
+        # Interaction with edges - Bounce off the edges
+        if self.x < tank.left or self.x > tank.right:
             self.vx *= -1
-        if self.x > WIDTH:
-            self.x = WIDTH
-            self.vx *= -1
-        if self.y < 0:
-            self.y = 0
-            self.vy *= -1
-        if self.y > HEIGHT:
-            self.y = HEIGHT
+        if self.y < tank.top or self.y > tank.bottom:
             self.vy *= -1
 
     def draw(self, screen):
@@ -46,6 +40,18 @@ clock = pygame.time.Clock()
 # List to store particles
 particles = []
 
+# Create the tank as a simple rectangle
+tank = pygame.Rect(100, 100, 600, 400)
+
+# Create a few particles within the tank
+for _ in range(NUM_PARTICLES):
+    x_position = random.randint(tank.left, tank.right)
+    y_position = random.randint(tank.top, tank.bottom)
+    particle = Particle(x_position, y_position)
+    particle.vx = random.uniform(-1, 1)
+    particle.vy = random.uniform(-1, 1)
+    particles.append(particle)
+
 # Main loop
 running = True
 while running:
@@ -53,16 +59,10 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # Create new particles at the top-left corner with random velocities
-    for _ in range(FLOW_RATE):
-        x_position = 0
-        y_position = 0
-        vx = random.uniform(1, 3)  # Adjust the velocity range
-        vy = random.uniform(1, 3)
-        particle = Particle(x_position, y_position, vx, vy)
-        particles.append(particle)
-
     screen.fill(BG_COLOR)
+
+    # Draw the tank
+    pygame.draw.rect(screen, TANK_COLOR, tank)
 
     # Move and draw particles
     for particle in particles:
@@ -70,6 +70,6 @@ while running:
         particle.draw(screen)
 
     pygame.display.flip()
-    clock.tick(FPS)
+    clock.tick(60)
 
 pygame.quit()
